@@ -75,7 +75,6 @@ urlRe = re.compile(
 class AddTaskOptionDialog(MaskDialogBase, Ui_AddTaskOptionDialog):
 
     _instance = None  # type: 'AddTaskOptionDialog'
-    _initialized: bool = False  # 记录是否被 close
     __addTableRowSignal = Signal(
         str, str, str
     )  # fileName, fileSize, Url, 同理因为int最大值仅支持到2^31 PyQt无法定义int64 故只能使用str代替
@@ -84,6 +83,7 @@ class AddTaskOptionDialog(MaskDialogBase, Ui_AddTaskOptionDialog):
     def __init__(self, parent=None):
         super().__init__(parent=parent)
 
+        self._timer = QTimer()
         self.customHeaders = Headers.copy()
 
         FluentStyleSheet.DIALOG.apply(self.widget)
@@ -124,6 +124,13 @@ class AddTaskOptionDialog(MaskDialogBase, Ui_AddTaskOptionDialog):
 
         self.__connectSignalToSlot()
 
+    def addUrlRow(self, url: str):
+        url = url.strip()
+        if self.linkTextEdit.toPlainText().endswith('\n'):
+            self.linkTextEdit.appendPlainText(url)
+        else:
+            self.linkTextEdit.appendPlainText('\n' + url)
+
     def eventFilter(self, obj, e: QEvent):
         if obj is self.window():
             if e.type() == QEvent.Resize:
@@ -143,33 +150,16 @@ class AddTaskOptionDialog(MaskDialogBase, Ui_AddTaskOptionDialog):
     def showAddTaskOptionDialog(
         cls, urlContent: str = "", parent: "QWidget" = None, headers: dict = None
     ):
-        if cls._initialized:
-            _ = cls._instance.linkTextEdit.toPlainText()
-            if urlContent and not urlContent in _.split("\n"):
-                _ += "\n" + urlContent
-                cls._instance.linkTextEdit.setPlainText(_)
-        else:
-            cls._instance = AddTaskOptionDialog(
-                parent=parent
-            )  # 防止 nuitka 打包时因 cls 未定义而报错
-            cls._initialized = True
-            cls._instance.linkTextEdit.setPlainText(urlContent)
+        if cls._instance is None:
+            cls._instance = cls(parent)
 
-        if (
-            headers
-        ):  # TODO headers 处理不合理, 应该每个 Item 都有自己的 headers, 要不然容易下不了
-            cls._instance.customHeaders = headers
-
-        cls._instance.exec()
+        cls.addUrlRow(cls._instance, urlContent) if urlContent else None
+        cls._instance.show()
 
     def closeEvent(self, event):
-        self.__whenClosed()
+        self.__class__._instance = None
         super().closeEvent(event)
-
-    @classmethod
-    def __whenClosed(cls):
-        cls._initialized = False
-        cls._instance = None
+        self.deleteLater()
 
     def __connectSignalToSlot(self):
         # self.downloadFolderCard.clicked.connect(
@@ -273,7 +263,6 @@ class AddTaskOptionDialog(MaskDialogBase, Ui_AddTaskOptionDialog):
         if hasattr(self, "_timer"):
             self._timer.stop()
 
-        self._timer = QTimer()
         self._timer.setSingleShot(True)
         self._timer.timeout.connect(self.__progressTextChange)
         self._timer.start(1000)  # 1秒后处理

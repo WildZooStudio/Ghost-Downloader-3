@@ -36,6 +36,7 @@ class MimeData(QMimeData):
         self.setText(self.url)
         return self
 
+
 class TaskCard(CardWidget, Ui_TaskCard):
     taskStatusChanged = Signal()
 
@@ -78,8 +79,9 @@ class TaskCard(CardWidget, Ui_TaskCard):
 
         elif self.status == "finished":
             # TODO 超分辨率触发条件
-            _ = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(128, 128, aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
-                                   mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
+            _ = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(128, 128,
+                                                                                                              aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
+                                                                                                              mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
 
             if _:
                 pixmap = _
@@ -194,8 +196,9 @@ class TaskCard(CardWidget, Ui_TaskCard):
         self.fileSize = self.task.fileSize
         self.ableToParallelDownload = ableToParallelDownload
 
-        _ = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(128, 128, aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
-                                   mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
+        _ = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(128, 128,
+                                                                                                          aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
+                                                                                                          mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
         # _ = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(128, 128)  # 自动获取图标
 
         if _:
@@ -274,7 +277,7 @@ class TaskCard(CardWidget, Ui_TaskCard):
 
     def mouseReleaseEvent(self, e):
         if e.button() == Qt.LeftButton and self.isPressed and self.status == "finished":
-                openFile(f"{self.filePath}/{self.fileName}")
+            openFile(f"{self.filePath}/{self.fileName}")
         super().mouseReleaseEvent(e)
 
     def changeButtonStatus(self, enabled: bool | None = None, icon=None, slot=None):
@@ -469,8 +472,9 @@ class TaskCard(CardWidget, Ui_TaskCard):
             self.updateTaskRecord("finished")
 
             # 再获取一次图标
-            fileinfo = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(128, 128, aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
-                                   mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
+            fileinfo = QFileIconProvider().icon(QFileInfo(f"{self.filePath}/{self.fileName}")).pixmap(48, 48).scaled(
+                128, 128, aspectMode=Qt.AspectRatioMode.KeepAspectRatio,
+                mode=Qt.TransformationMode.SmoothTransformation)  # 自动获取图标
 
             if fileinfo:
                 pass
@@ -504,10 +508,10 @@ class TaskCard(CardWidget, Ui_TaskCard):
     def runCalcHashTask(self, algorithm):
         self.__showInfo(self.tr("正在校验 ") + algorithm + self.tr(", 请稍后..."))
         self.changeButtonStatus(enabled=False)
-        self.progressBar.setMaximum(Path(f"{self.filePath}/{self.fileName}").stat().st_size/1048576)  # 设置进度条最大值
+        self.progressBar.setMaximum(Path(f"{self.filePath}/{self.fileName}").stat().st_size / 1048576)  # 设置进度条最大值
 
         self.calcTask = CalcHashThread(f"{self.filePath}/{self.fileName}", algorithm)
-        self.calcTask.calcProgress.connect(lambda x: self.progressBar.setValue(int(x)/1048576))
+        self.calcTask.calcProgress.connect(lambda x: self.progressBar.setValue(int(x) / 1048576))
         self.calcTask.returnHash.connect(self.whenHashCalcFinished)
         self.calcTask.start()
 
@@ -529,6 +533,7 @@ class TaskCard(CardWidget, Ui_TaskCard):
 
         if ok and selected_algorithm:
             self.runCalcHashTask(selected_algorithm)
+
 
 class CalcHashThread(QThread):
     calcProgress = Signal(str)  # 因为C++ int最大值仅支持到2^31 PyQt又没有Qint类 故只能使用str代替

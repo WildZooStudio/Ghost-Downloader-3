@@ -55,13 +55,13 @@ class SelectFolderSettingCard(SettingCard):
     """下载路径设置卡片组件"""
     pathChanged = Signal(str)  # 路径修改信号
 
-    def __init__(self, defaultItem: ConfigItem, memoryItem: ConfigItem, parent=None):
+    def __init__(self, current: ConfigItem, memory: ConfigItem, parent=None):
         super().__init__(FIF.DOWNLOAD, self.tr("下载路径"), cfg.downloadFolder.value, parent)
-        self.memoryItem = memoryItem  # 历史记录配置项
-        self.defaultItem = defaultItem  # 默认路径配置项
+        self.memoryItem = memory  # 历史记录配置项
+        self.currentPathItem = current  # 默认路径配置项
 
         # 初始化组合框
-        self.editableComboBox = HistoryPathComboBox(self, self.defaultItem.value, self.memoryItem.value)
+        self.editableComboBox = HistoryPathComboBox(self, self.currentPathItem.value, self.memoryItem.value)
 
         # 初始化选择按钮
         self.chooseFolderButton = ToolButton(FIF.FOLDER, self)
@@ -77,7 +77,7 @@ class SelectFolderSettingCard(SettingCard):
         self.hBoxLayout.addSpacing(16)
 
         self.editableComboBox.flashList()
-        self.setContent(defaultItem.value)
+        self.setContent(current.value)
 
     def __chooseFolder(self):
         """打开文件夹选择对话框"""
@@ -112,6 +112,7 @@ class SelectFolderSettingCard(SettingCard):
 
         self.setContent(path)  # 更新卡片显示
         self.pathChanged.emit(path)  # 发出修改信号
+        self.currentPathItem.value = path
 
     def __del__(self):
         """析构时清理重复历史记录并保存"""
