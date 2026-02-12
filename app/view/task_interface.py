@@ -106,7 +106,7 @@ class TaskInterface(ScrollArea):
             if card.url == url:
                 InfoBar.error(
                     title=self.tr('错误'),
-                    content=self.tr("已创建相同下载链接的任务!"),
+                    content=self.tr("已创建相同下载链接的任务!可右键原任务选择重新下载"),
                     orient=Qt.Horizontal,
                     isClosable=True,
                     position=InfoBarPosition.TOP,
@@ -115,12 +115,19 @@ class TaskInterface(ScrollArea):
                     parent=self.parent()
                 )
                 return
-
             try:
                 if card.fileName == fileName and card.filePath == filePath:
+                    check_filename_times = 0
+                    while True:
+                        check_filename_times += 1
+                        fileName_temp = fileName
+                        if card.fileName == fileName_temp and card.filePath == filePath:
+                            fileName = fileName_temp + f"_{check_filename_times}"
+                        else:
+                            break
                     InfoBar.error(
-                        title=self.tr('错误'),
-                        content=self.tr("已创建相同文件名和路径的任务!"),
+                        title=self.tr('警告'),
+                        content=self.tr("已创建相同文件名和路径的任务!已为你重命名为%s" % fileName),
                         orient=Qt.Horizontal,
                         isClosable=True,
                         position=InfoBarPosition.TOP,
@@ -128,7 +135,6 @@ class TaskInterface(ScrollArea):
                         duration=3000,
                         parent=self.parent()
                     )
-                    return
             except Exception as e:
                 logger.error(f"Error while checking duplicate task: {e}")
 
